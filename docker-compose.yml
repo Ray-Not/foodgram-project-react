@@ -19,13 +19,11 @@ services:
       - static:/backend_static
   frontend:
     build: ./frontend/
-    volumes:
-      - static:/frontend_static
   nginx:
     image: nginx:1.19.3
     ports:
       - "80:80"
     volumes:
       - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf
-      - static:/frontend_static
+      - ./frontend/build:/usr/share/nginx/html/
       - ./docs/:/usr/share/nginx/html/api/docs/
