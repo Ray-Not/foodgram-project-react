@@ -97,10 +97,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_URL = 'static_backend'
+STATIC_URL = '/static/'
 
 # Backend static (Admin)
-
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
 # Default primary key field type
