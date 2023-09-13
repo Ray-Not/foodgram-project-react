@@ -1,4 +1,6 @@
-Django
+Django==3.2.3 
 psycopg2-binary==2.9.3
-gunicorn
-python-dotenv
+gunicorn==20.1.0
+python-dotenv==0.10.1 
+djoser==2.1.0
+djangorestframework==3.12.4
