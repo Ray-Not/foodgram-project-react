@@ -1,5 +1,6 @@
-from .models import User
 from djoser.serializers import UserSerializer
+
+from .models import User
 
 
 class CustomRegisterSerializer(UserSerializer):

@@ -1,8 +1,8 @@
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
-from .models import User
 
+from .models import User
 from .serializers import CustomRegisterSerializer
 
 
