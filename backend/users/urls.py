@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import CreateListView, UserDetailView
 from djoser.views import UserViewSet
+
+from .views import CreateListView, UserDetailView
 
 urlpatterns = [
     path('', CreateListView.as_view()),

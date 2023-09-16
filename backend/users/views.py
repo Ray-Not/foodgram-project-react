@@ -1,6 +1,7 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from .models import User
 from .serializers import CustomUserSerializer
 
