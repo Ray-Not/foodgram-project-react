@@ -1,9 +1,8 @@
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny
-
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
-from .serializers import CustomRegisterSerializer
+from .serializers import CustomUserSerializer
 
 
 class UserListPagination(PageNumberPagination):
@@ -12,9 +11,16 @@ class UserListPagination(PageNumberPagination):
     page_size_query_param = 'limit'
 
 
-class ListView(ListCreateAPIView):
-    """Дженерик, вернет список пользователей или создаст нового"""
-    queryset = User.objects.all()
-    serializer_class = CustomRegisterSerializer
-    permission_classes = [AllowAny]
+class CreateListView(ListCreateAPIView):
+    """Дженерик создаст нового пользователя или вернет список"""
+    queryset = User.objects.all().order_by('id')
+    serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny, ]
     pagination_class = UserListPagination
+
+
+class UserDetailView(RetrieveAPIView):
+    """Представление для получения одного пользователя"""
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [IsAuthenticated, ]

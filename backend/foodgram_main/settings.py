@@ -20,6 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'users',
     'djoser',
 ]
@@ -98,7 +100,6 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
 }
 
 # Internationalization
@@ -124,6 +125,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Djoser
 DJOSER = {
-    'USER_MODEL': 'users.User'
+    'USER_MODEL': 'users.User',
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'current_user': 'users.serializers.CustomMeSerializer',
+    },
 }
 AUTH_USER_MODEL = 'users.User'
