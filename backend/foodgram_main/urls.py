@@ -6,3 +6,5 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/auth/', include('djoser.urls.authtoken')),
 ]
+
+handler404 = 'core.views.page_not_found'
