@@ -9,7 +9,7 @@ class TagSerializer(serializers.ModelSerializer):
         model = Tag
         fields = (
             'id',
-            'tag_name',
+            'name',
             'color',
             'slug',
         )
@@ -21,6 +21,6 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = (
             'id',
-            'ingredient_name',
-            'unit',
+            'name',
+            'measurement_unit',
         )

@@ -9,7 +9,7 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Автор',
     )
-    recipe_name = models.CharField(
+    name = models.CharField(
         max_length=128,
         verbose_name='Название рецепта'
     )
@@ -19,7 +19,7 @@ class Recipe(models.Model):
         null=True,
         verbose_name='Картинка рецепта'
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Описание рецепта',
     )
     cooking_time = models.PositiveIntegerField(
@@ -27,12 +27,12 @@ class Recipe(models.Model):
     )
 
     def __str__(self):
-        return self.recipe_name
+        return self.name
 
 
 class Tag(models.Model):
     """Модель тэгов"""
-    tag_name = models.CharField(
+    name = models.CharField(
         max_length=128,
         unique=True,
         verbose_name='Название тэга',
@@ -48,7 +48,7 @@ class Tag(models.Model):
     )
 
     def __str__(self):
-        return self.tag_name
+        return self.name
 
 
 class Ingredient(models.Model):
@@ -61,18 +61,18 @@ class Ingredient(models.Model):
         ('tablespoon', 'стл. л.'),
         ('piece', 'шт.'),
     )
-    ingredient_name = models.CharField(
+    name = models.CharField(
         max_length=128,
         verbose_name='Название ингредиента',
     )
-    unit = models.CharField(
+    measurement_unit = models.CharField(
         max_length=128,
         choices=CHOICES,
         verbose_name='Единица измерения',
     )
 
     def __str__(self):
-        return self.ingredient_name
+        return self.name
 
 
 class RecipesIngredient(models.Model):
