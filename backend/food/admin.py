@@ -1,3 +1,21 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Recipe, Ingredient, Tag, RecipesIngredient
+
+
+class RecipeAdmin(admin.ModelAdmin):
+    pass
+
+
+class IngredientAdmin(admin.ModelAdmin):
+    pass
+
+
+class TagAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(Recipe)
+admin.site.register(Ingredient)
+admin.site.register(Tag)
+admin.site.register(RecipesIngredient)

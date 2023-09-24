@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'users',
     'djoser',
     'core',
+    'food',
 ]
 
 MIDDLEWARE = [
@@ -117,12 +118,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static_back/'
-
+STATIC_ROOT = BASE_DIR / 'static_back'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-# Backend static (Admin)
-STATIC_ROOT = BASE_DIR / 'collected_static'
-
 # Default primary key field type
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
