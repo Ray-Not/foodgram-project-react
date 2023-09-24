@@ -3,5 +3,5 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Дополнительное поле для подписок"""
+    """Моедль с дополнительным полем для подписок"""
     is_subscribed = models.BooleanField(default=False)
