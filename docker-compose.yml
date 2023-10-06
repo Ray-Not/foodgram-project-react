@@ -18,10 +18,12 @@ services:
     command: sh -c "python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 foodgram_main.wsgi:application"
     volumes:
       - static:/app/collected_static
+    ports:
+      - "8000:8000"
   frontend:
     build: ./frontend/
     volumes:
-      - static:/app/result_build/build
+      - static:/app/front_static
   nginx:
     build: ./infra/
     environment:

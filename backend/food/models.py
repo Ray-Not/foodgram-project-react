@@ -1,33 +1,6 @@
 from django.db import models
 from users.models import User
-
-
-class Recipe(models.Model):
-    """Модель рецептов"""
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Автор',
-    )
-    name = models.CharField(
-        max_length=128,
-        verbose_name='Название рецепта'
-    )
-    image = models.ImageField(
-        upload_to='food/',
-        blank=True,
-        null=True,
-        verbose_name='Картинка рецепта'
-    )
-    text = models.TextField(
-        verbose_name='Описание рецепта',
-    )
-    cooking_time = models.PositiveIntegerField(
-        verbose_name='Время готовки (мин.)',
-    )
-
-    def __str__(self):
-        return self.name
+from django.core.validators import MinValueValidator
 
 
 class Tag(models.Model):
@@ -75,6 +48,47 @@ class Ingredient(models.Model):
         return self.name
 
 
+class Recipe(models.Model):
+    """Модель рецептов"""
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор',
+    )
+    name = models.CharField(
+        max_length=200,
+        verbose_name='Название рецепта'
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        through='RecipesIngredient',
+        verbose_name='Ингредиенты',
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        verbose_name='Тэг',
+        related_name='tags',
+    )
+    image = models.ImageField(
+        upload_to='food/',
+        blank=True,
+        null=True,
+        verbose_name='Картинка рецепта'
+    )
+    text = models.TextField(
+        verbose_name='Описание рецепта',
+    )
+    cooking_time = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name='Время готовки (мин.)',
+    )
+    is_favorited = models.BooleanField(default=False)
+    is_in_shopping_cart = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
 class RecipesIngredient(models.Model):
     """Связываящая модель Рецепт->Ингредиент"""
     recipe = models.ForeignKey(
@@ -87,7 +101,7 @@ class RecipesIngredient(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Ингредиент',
     )
-    count = models.PositiveIntegerField(
+    amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента',
     )
 
