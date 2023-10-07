@@ -23,7 +23,7 @@ services:
   frontend:
     build: ./frontend/
     volumes:
-      - static:/app/front_static
+      - static:/app/result_build/build
   nginx:
     build: ./infra/
     environment:

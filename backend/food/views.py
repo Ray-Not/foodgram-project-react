@@ -1,7 +1,8 @@
-from rest_framework.viewsets import ReadOnlyModelViewSet
-from rest_framework.permissions import AllowAny
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .models import Tag, Ingredient, Recipe
 from .serializers import TagSerializer, IngredientSerializer, RecipeSerializer
+from users.views import ListPagination
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -23,8 +24,9 @@ class IngredientViewSet(ReadOnlyModelViewSet):
         return queryset.filter(name__startswith=name_param)
 
 
-class RecipeViewSet(ReadOnlyModelViewSet):
-    """Представление вернет список тэгов или тэг"""
+class RecipeViewSet(ModelViewSet):
+    """Представление вернет список рецептов или рецепт"""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = [AllowAny, ]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
+    pagination_class = ListPagination

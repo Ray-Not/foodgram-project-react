@@ -6,7 +6,7 @@ from .models import User
 from .serializers import CustomUserSerializer
 
 
-class UserListPagination(PageNumberPagination):
+class ListPagination(PageNumberPagination):
     """Паджинатор для списка пользователей с лимитом"""
     page_size = 5
     page_size_query_param = 'limit'
@@ -17,7 +17,7 @@ class CreateListView(ListCreateAPIView):
     queryset = User.objects.all().order_by('id')
     serializer_class = CustomUserSerializer
     permission_classes = [AllowAny, ]
-    pagination_class = UserListPagination
+    pagination_class = ListPagination
 
 
 class UserDetailView(RetrieveAPIView):
