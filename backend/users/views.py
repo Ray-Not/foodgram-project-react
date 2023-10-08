@@ -7,7 +7,7 @@ from .serializers import CustomUserSerializer
 
 
 class ListPagination(PageNumberPagination):
-    """Паджинатор для списка пользователей с лимитом"""
+    """Паджинатор с лимитом"""
     page_size = 5
     page_size_query_param = 'limit'
 

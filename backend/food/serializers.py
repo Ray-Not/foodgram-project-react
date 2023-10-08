@@ -1,10 +1,11 @@
-from rest_framework import serializers
-
-from .models import Ingredient, Tag, Recipe, RecipesIngredient
-from users.serializers import CustomMeSerializer
 import base64
 
 from django.core.files.base import ContentFile
+from rest_framework import serializers
+
+from users.serializers import CustomMeSerializer
+
+from .models import Ingredient, Recipe, RecipesIngredient, Tag
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -31,7 +32,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингредиентов->рецептов"""
+    """Сериализатор для ингредиентов->рецептов (просмотр)"""
     id = serializers.ReadOnlyField(
         source='ingredient.id'
     )
@@ -54,7 +55,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class Base64ImageField(serializers.ImageField):
-
+    """Конвертация из base64"""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -64,7 +65,7 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для рецептов"""
+    """Сериализатор для получения рецептов"""
     ingredients = RecipeIngredientSerializer(
         many=True,
         source='recipe_ingredients'
@@ -82,6 +83,64 @@ class RecipeSerializer(serializers.ModelSerializer):
             'ingredients',
             'is_favorited',
             'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+
+class CrRecipeIngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов->рецептов (создание)"""
+    id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+
+    class Meta:
+        model = RecipesIngredient
+        fields = (
+            'id',
+            'amount'
+        )
+
+
+class CrRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания рецептов"""
+    ingredients = CrRecipeIngredientSerializer(many=True)
+    image = Base64ImageField(required=False, allow_null=True)
+
+    def create(self, validated_data):
+        """Переопределяем создание с автором"""
+        author = self.context['request'].user
+        validated_data['author'] = author
+        ingredient_data = validated_data.pop('ingredients')
+        tags_data = validated_data.pop('tags')
+        recipe = Recipe.objects.create(**validated_data)
+
+        for item in ingredient_data:
+            ingredient = item['id']
+            amount = item['amount']
+            RecipesIngredient.objects.create(
+                ingredient=ingredient,
+                recipe=recipe,
+                amount=amount
+            )
+
+        for tag in tags_data:
+            recipe.tags.add(tag)
+
+        return recipe
+
+    def to_representation(self, instance):
+        """Переопределим отображение, вернется обычный рецептовый"""
+        return RecipeSerializer(
+            instance,
+            context={'request': self.context.get('request')}
+        ).data
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'tags',
+            'ingredients',
             'name',
             'image',
             'text',

@@ -1,6 +1,7 @@
-from django.db import models
-from users.models import User
 from django.core.validators import MinValueValidator
+from django.db import models
+
+from users.models import User
 
 
 class Tag(models.Model):
@@ -105,6 +106,7 @@ class RecipesIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента',
+        blank=True
     )
 
     def __str__(self):
