@@ -4,7 +4,7 @@ from rest_framework.routers import SimpleRouter
 from .views import RecipeViewSet
 
 router = SimpleRouter()
-router.register('', RecipeViewSet)
+router.register(r'', RecipeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

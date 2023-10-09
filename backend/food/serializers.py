@@ -4,7 +4,7 @@ from django.core.files.base import ContentFile
 from rest_framework import serializers
 
 from users.serializers import CustomMeSerializer
-
+from rest_framework.exceptions import PermissionDenied
 from .models import Ingredient, Recipe, RecipesIngredient, Tag
 
 
@@ -108,13 +108,12 @@ class CrRecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
 
     def create(self, validated_data):
-        """Переопределяем создание с автором"""
+        """POST для рецепта"""
         author = self.context['request'].user
         validated_data['author'] = author
         ingredient_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-
         for item in ingredient_data:
             ingredient = item['id']
             amount = item['amount']
@@ -123,11 +122,30 @@ class CrRecipeSerializer(serializers.ModelSerializer):
                 recipe=recipe,
                 amount=amount
             )
-
         for tag in tags_data:
             recipe.tags.add(tag)
-
         return recipe
+
+    def update(self, instance, validated_data):
+        """PATCH для рецепта"""
+        if instance.author != self.context['request'].user:
+            raise PermissionDenied
+        instance.name = validated_data['name']
+        instance.cooking_time = validated_data['cooking_time']
+        instance.text = validated_data['text']
+        instance.image = validated_data['image']
+        instance.tags.set(validated_data.pop('tags'))
+        instance.ingredients.clear()
+        for item in validated_data['ingredients']:
+            ingredient = item['id']
+            amount = item['amount']
+            RecipesIngredient.objects.create(
+                ingredient=ingredient,
+                recipe=instance,
+                amount=amount
+            )
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         """Переопределим отображение, вернется обычный рецептовый"""
