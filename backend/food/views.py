@@ -1,9 +1,10 @@
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.decorators import action
-from users.views import ListPagination
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
+from users.views import ListPagination
 
 from .models import Ingredient, Recipe, Tag
 from .serializers import (CrRecipeSerializer, IngredientSerializer,
@@ -45,10 +46,17 @@ class RecipeViewSet(ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        response_data = {"detail": "У вас недостаточно прав для выполнения данного действия."}
+        response_data = {
+            "detail":
+                "У вас недостаточно прав для выполнения данного действия."
+        }
         if instance.author != request.user:
             return Response(response_data, status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['POST'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
-        return Response({"detail": "Запрос на добавление в корзину успешно обработан."})
+        return Response({
+            "detail": "Запрос на добавление в корзину успешно обработан."
+        })

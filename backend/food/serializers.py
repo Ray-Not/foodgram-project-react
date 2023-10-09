@@ -2,9 +2,10 @@ import base64
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from users.serializers import CustomMeSerializer
-from rest_framework.exceptions import PermissionDenied
+
 from .models import Ingredient, Recipe, RecipesIngredient, Tag
 
 
