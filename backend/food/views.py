@@ -4,13 +4,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from .serializers import (CrRecipeSerializer,
-                          IngredientSerializer, RecipeSerializer,
-                          TagSerializer)
-from .detail_serializer_recipe import DetailRecipeSerializer
+from .serializers import (CrRecipeSerializer, IngredientSerializer,
+                          RecipeSerializer, TagSerializer)
 
 
 class TagViewSet(ReadOnlyModelViewSet):

@@ -1,9 +1,16 @@
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
-from .models import User
 from food.models import Recipe
-from food.detail_serializer_recipe import DetailRecipeSerializer
+
+from .models import Subscribe, User
+
+
+class DetailRecipeSerializer(serializers.ModelSerializer):
+    """Сокращенный сериализатор рецепта"""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -12,6 +19,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
     last_name = serializers.CharField(required=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         """Создание пользователя с хэш-паролем"""
@@ -33,6 +41,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
             return data
         data.pop('is_subscribed')
         return data
+
+    def get_is_subscribed(self, follow):
+        follower = self.context['request'].user
+        return Subscribe.objects.filter(
+            follow=follow,
+            follower=follower
+        ).exists()
 
     class Meta:
         model = User
@@ -61,10 +76,11 @@ class CustomMeSerializer(UserSerializer):
         )
 
 
-class SubscribeSerializer(CustomMeSerializer):
+class SubscribeSerializer(serializers.ModelSerializer):
     """Сериализатор для подписок"""
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     def get_recipes(self, follow):
         recipes = Recipe.objects.filter(author=follow)
@@ -74,6 +90,13 @@ class SubscribeSerializer(CustomMeSerializer):
 
     def get_recipes_count(self, follow):
         return Recipe.objects.filter(author=follow).count()
+
+    def get_is_subscribed(self, follow):
+        follower = self.context['request'].user
+        return Subscribe.objects.filter(
+            follow=follow,
+            follower=follower
+        ).exists()
 
     class Meta:
         model = User

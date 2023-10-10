@@ -1,12 +1,12 @@
-
-from rest_framework.generics import RetrieveAPIView
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from .models import User, Subscribe
+from rest_framework.viewsets import ModelViewSet
+
+from .models import Subscribe, User
 from .serializers import CustomUserSerializer, SubscribeSerializer
 
 
@@ -59,7 +59,10 @@ class SubscribeView(ModelViewSet):
             follow=follow,
             follower=follower
         )
-        sub_serializer = SubscribeSerializer(follow)
+        sub_serializer = SubscribeSerializer(
+            follow,
+            context={'request': request}
+        )
         return Response(sub_serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['DELETE'], url_path='subscribe')
@@ -80,3 +83,15 @@ class SubscribeView(ModelViewSet):
             follower=follower
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubscribeListView(ListAPIView):
+    serializer_class = SubscribeSerializer
+    permission_classes = [IsAuthenticated, ]
+    pagination_class = ListPagination
+
+    def get_queryset(self):
+        subscribed_users = Subscribe.objects.filter(
+            follower=self.request.user
+        ).values_list('follow_id', flat=True)
+        return User.objects.filter(id__in=subscribed_users)
