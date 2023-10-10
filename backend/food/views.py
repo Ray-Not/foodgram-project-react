@@ -7,9 +7,10 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.views import ListPagination
 
 from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
-from .serializers import (CrRecipeSerializer, DetailRecipeSerializer,
+from .serializers import (CrRecipeSerializer,
                           IngredientSerializer, RecipeSerializer,
                           TagSerializer)
+from .detail_serializer_recipe import DetailRecipeSerializer
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -49,7 +50,7 @@ class RecipeViewSet(ModelViewSet):
         instance = self.get_object()
         response_data = {
             "detail":
-                "У вас недостаточно прав для выполнения данного действия."
+                "Permission denied"
         }
         if instance.author != request.user:
             return Response(response_data, status=status.HTTP_403_FORBIDDEN)

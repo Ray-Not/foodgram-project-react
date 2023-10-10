@@ -2,6 +2,8 @@ from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
 from .models import User
+from food.models import Recipe
+from food.detail_serializer_recipe import DetailRecipeSerializer
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -56,4 +58,32 @@ class CustomMeSerializer(UserSerializer):
             'first_name',
             'last_name',
             'is_subscribed'
+        )
+
+
+class SubscribeSerializer(CustomMeSerializer):
+    """Сериализатор для подписок"""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    def get_recipes(self, follow):
+        recipes = Recipe.objects.filter(author=follow)
+        serializer = DetailRecipeSerializer(recipes, many=True)
+
+        return serializer.data
+
+    def get_recipes_count(self, follow):
+        return Recipe.objects.filter(author=follow).count()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
         )
