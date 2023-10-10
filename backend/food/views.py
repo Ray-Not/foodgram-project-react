@@ -6,8 +6,8 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from users.views import ListPagination
 
-from .models import Ingredient, Recipe, ShoppingCart, Tag
-from .serializers import (CartRecipeSerializer, CrRecipeSerializer,
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .serializers import (CrRecipeSerializer, DetailRecipeSerializer,
                           IngredientSerializer, RecipeSerializer,
                           TagSerializer)
 
@@ -69,7 +69,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == "POST":
             if recipe_in_cart:
                 return Response(
-                    {"errors": "Рецепт уже добавлен"},
+                    {"errors": "recipe_in_cart already exists"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             ShoppingCart.objects.create(
@@ -77,7 +77,7 @@ class RecipeViewSet(ModelViewSet):
                 recipe=recipe,
                 in_shopping_card=True
             )
-            recipe_serializer = CartRecipeSerializer(recipe)
+            recipe_serializer = DetailRecipeSerializer(recipe)
             return Response(
                 recipe_serializer.data,
                 status=status.HTTP_201_CREATED
@@ -85,8 +85,43 @@ class RecipeViewSet(ModelViewSet):
         if request.method == "DELETE":
             if not recipe_in_cart:
                 return Response(
-                    {"errors": "Рецепта нет в списке"},
+                    {"errors": "recipe_in_cart not found"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             recipe_in_cart.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['POST', 'DELETE'], url_path='favorite')
+    def favorite(self, request, pk=None):
+        """Добавление в список покупок"""
+        recipe = self.get_object()
+        user = request.user
+        recipe_in_favor = Favorite.objects.filter(
+            user=user,
+            recipe=recipe,
+            in_favorite=True
+        )
+        if request.method == "POST":
+            if recipe_in_favor:
+                return Response(
+                    {"errors": "recipe_in_favore already exists"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            Favorite.objects.create(
+                user=user,
+                recipe=recipe,
+                in_favorite=True
+            )
+            recipe_serializer = DetailRecipeSerializer(recipe)
+            return Response(
+                recipe_serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        if request.method == "DELETE":
+            if not recipe_in_favor:
+                return Response(
+                    {"errors": "recipe_in_favore not found"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            recipe_in_favor.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

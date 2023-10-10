@@ -114,6 +114,7 @@ class RecipesIngredient(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """Модель для списка покупок"""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -125,3 +126,24 @@ class ShoppingCart(models.Model):
         verbose_name='Рецепт'
     )
     in_shopping_card = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user} добавил {self.recipe}"
+
+
+class Favorite(models.Model):
+    """Модель для избранного"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    in_favorite = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.recipe} в избранном у {self.user}"
