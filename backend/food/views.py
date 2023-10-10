@@ -1,16 +1,20 @@
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
-from rest_framework.decorators import api_view
+import csv
+
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.decorators import action, api_view
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-import csv
-from django.http import HttpResponse
+
 from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag, RecipesIngredient
+from .filters import RecipeFilter
+from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
+                     ShoppingCart, Tag)
 from .serializers import (CrRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, TagSerializer)
 
@@ -41,6 +45,8 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, ]
     pagination_class = ListPagination
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_class = RecipeFilter
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_serializer_class(self):
