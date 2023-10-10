@@ -1,13 +1,16 @@
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.decorators import api_view
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
+import csv
+from django.http import HttpResponse
 from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag, RecipesIngredient
 from .serializers import (CrRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, TagSerializer)
 
@@ -93,7 +96,7 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['POST', 'DELETE'], url_path='favorite')
     def favorite(self, request, pk=None):
-        """Добавление в список покупок"""
+        """Добавление в избранное"""
         recipe = self.get_object()
         user = request.user
         recipe_in_favor = Favorite.objects.filter(
@@ -125,3 +128,32 @@ class RecipeViewSet(ModelViewSet):
                 )
             recipe_in_favor.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@login_required
+def dowload_shopping_list(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="shop_list.csv"'
+    writer = csv.writer(response, delimiter=',')
+    ingredient_totals = {}
+    ingredient_units = {}
+    shopping_cart_items = ShoppingCart.objects.filter(user=request.user)
+    for item in shopping_cart_items:
+        recipe_ingredients = RecipesIngredient.objects.filter(
+            recipe=item.recipe
+        )
+        for recipe_ingredient in recipe_ingredients:
+            ingredient_name = recipe_ingredient.ingredient.name
+            measure = recipe_ingredient.ingredient.measurement_unit
+            if ingredient_name in ingredient_totals:
+                ingredient_totals[ingredient_name] += recipe_ingredient.amount
+            else:
+                ingredient_totals[ingredient_name] = recipe_ingredient.amount
+                ingredient_units[ingredient_name] = measure
+    for ingredient, amount in ingredient_totals.items():
+        measure = ingredient_units[ingredient]
+        formatted_view = f'{ingredient} ({measure}) - {amount}'
+        writer.writerow([formatted_view])
+
+    return response
