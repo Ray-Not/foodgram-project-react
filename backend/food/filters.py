@@ -4,6 +4,7 @@ from .models import Favorite, Recipe, ShoppingCart
 
 
 class RecipeFilter(django_filters.FilterSet):
+    """Фильтры для рецептов"""
     is_favorited = django_filters.BooleanFilter(
         method='filter_in_favorite'
     )
@@ -20,6 +21,7 @@ class RecipeFilter(django_filters.FilterSet):
     )
 
     def filter_in_favorite(self, queryset, name, value):
+        """Фильтр для избранного"""
         user = self.request.user
         if user.is_anonymous:
             return queryset
@@ -35,6 +37,7 @@ class RecipeFilter(django_filters.FilterSet):
             )
 
     def filter_in_shop_list(self, queryset, name, value):
+        """Фильтр для списка покупок"""
         user = self.request.user
         if user.is_anonymous:
             return queryset

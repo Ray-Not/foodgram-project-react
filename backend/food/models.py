@@ -27,26 +27,20 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель Ингредиентов с выбором единиц измерений"""
-    CHOICES = (
-        ('kilogramm', 'кг.'),
-        ('gramm', 'гр.'),
-        ('mililitre', 'мл.'),
-        ('litre', 'л.'),
-        ('tablespoon', 'стл. л.'),
-        ('piece', 'шт.'),
-    )
     name = models.CharField(
         max_length=128,
-        verbose_name='Название ингредиента',
+        verbose_name='Название ингредиента'
     )
     measurement_unit = models.CharField(
         max_length=128,
-        choices=CHOICES,
         verbose_name='Единица измерения',
     )
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        unique_together = ('name', 'measurement_unit')
 
 
 class Recipe(models.Model):
@@ -89,6 +83,9 @@ class Recipe(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        unique_together = ('name', )
+
 
 class RecipesIngredient(models.Model):
     """Связываящая модель Рецепт->Ингредиент"""
@@ -106,7 +103,7 @@ class RecipesIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(
         verbose_name='Количество ингредиента',
-        blank=True
+        blank=False
     )
 
     def __str__(self):
@@ -128,7 +125,7 @@ class ShoppingCart(models.Model):
     in_shopping_card = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user} добавил {self.recipe}"
+        return f"{self.user} добавил {self.recipe} в список покупок"
 
 
 class Favorite(models.Model):
