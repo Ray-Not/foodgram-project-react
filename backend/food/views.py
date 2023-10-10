@@ -6,9 +6,10 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from users.views import ListPagination
 
-from .models import Ingredient, Recipe, Tag
-from .serializers import (CrRecipeSerializer, IngredientSerializer,
-                          RecipeSerializer, TagSerializer)
+from .models import Ingredient, Recipe, ShoppingCart, Tag
+from .serializers import (CartRecipeSerializer, CrRecipeSerializer,
+                          IngredientSerializer, RecipeSerializer,
+                          TagSerializer)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -55,8 +56,37 @@ class RecipeViewSet(ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['POST'], url_path='shopping_cart')
+    @action(detail=True, methods=['POST', 'DELETE'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
-        return Response({
-            "detail": "Запрос на добавление в корзину успешно обработан."
-        })
+        """Добавление в список покупок"""
+        recipe = self.get_object()
+        user = request.user
+        recipe_in_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=recipe,
+            in_shopping_card=True
+        )
+        if request.method == "POST":
+            if recipe_in_cart:
+                return Response(
+                    {"errors": "Рецепт уже добавлен"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            ShoppingCart.objects.create(
+                user=user,
+                recipe=recipe,
+                in_shopping_card=True
+            )
+            recipe_serializer = CartRecipeSerializer(recipe)
+            return Response(
+                recipe_serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        if request.method == "DELETE":
+            if not recipe_in_cart:
+                return Response(
+                    {"errors": "Рецепта нет в списке"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            recipe_in_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)

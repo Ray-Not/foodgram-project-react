@@ -111,3 +111,17 @@ class RecipesIngredient(models.Model):
 
     def __str__(self):
         return f'{self.recipe} с использованием {self.ingredient}'
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт'
+    )
+    in_shopping_card = models.BooleanField(default=False)

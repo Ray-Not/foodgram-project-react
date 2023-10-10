@@ -6,7 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from users.serializers import CustomMeSerializer
 
-from .models import Ingredient, Recipe, RecipesIngredient, Tag
+from .models import Ingredient, Recipe, RecipesIngredient, ShoppingCart, Tag
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -74,6 +74,18 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
     author = CustomMeSerializer()
     tags = TagSerializer(many=True)
+    is_in_shopping_cart = serializers.SerializerMethodField()
+
+    def get_is_in_shopping_cart(self, obj):
+        user = self.context['request'].user
+
+        is_in_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=obj,
+            in_shopping_card=True
+        ).exists()
+
+        return is_in_cart
 
     class Meta:
         model = Recipe
@@ -165,3 +177,10 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+
+class CartRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для вывода при добавлении в корзину"""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
