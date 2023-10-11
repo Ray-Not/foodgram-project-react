@@ -9,9 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-# DEBUG = os.getenv('DJANGO_DEBUG_MODE', 'True').lower() == "true"
-DEBUG = True
-
+DEBUG = os.getenv('DJANGO_DEBUG_MODE', 'True').lower() == "true"
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost').split(', ')
 
 INSTALLED_APPS = [
@@ -24,9 +22,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'users',
-    'djoser',
-    'core',
     'food',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -113,9 +110,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static_back/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media_back/'
+
+# Default primary key field type
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
