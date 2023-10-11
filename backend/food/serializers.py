@@ -3,7 +3,6 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
-
 from users.serializers import CustomMeSerializer
 
 from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
@@ -165,7 +164,9 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         instance.name = validated_data['name']
         instance.cooking_time = validated_data['cooking_time']
         instance.text = validated_data['text']
-        instance.image = validated_data['image']
+        new_image = validated_data.get('image')
+        if new_image:
+            instance.image = new_image
         instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
         for item in validated_data['ingredients']:
@@ -200,7 +201,6 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             'name',
             'cooking_time',
             'text',
-            'image',
             'ingredients',
             'tags'
         ]

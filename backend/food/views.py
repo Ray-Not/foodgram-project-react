@@ -8,11 +8,10 @@ from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
 from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
-from .filters import RecipeFilter
+from .filters import IngredientFilter, RecipeFilter
 from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
                      ShoppingCart, Tag)
 from .serializers import (CrRecipeSerializer, IngredientSerializer,
@@ -31,13 +30,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [AllowAny, ]
-
-    def get_queryset(self):
-        """Вернет отфильтрованный запрос по первой фразе"""
-        # Регистрозависимо
-        queryset = super().get_queryset()
-        name_param = self.request.query_params.get('name', '')
-        return queryset.filter(name__startswith=name_param)
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(ModelViewSet):
@@ -141,7 +135,7 @@ class RecipeViewSet(ModelViewSet):
 def dowload_shopping_list(request):
     """Загрузка файла с ингредиентами в csv"""
     file = HttpResponse(content_type='text/csv')
-    file['Content-Disposition'] = 'attachment; filename="shop_list.csv"'
+    file['Content-Disposition'] = 'attachment; filename="shopping_list.csv"'
     writer = csv.writer(file, delimiter=',')
     ingredient_totals = {}
     ingredient_units = {}

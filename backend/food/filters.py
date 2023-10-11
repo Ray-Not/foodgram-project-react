@@ -1,14 +1,15 @@
 import django_filters
+from django.db.models import Q
 
-from .models import Favorite, Recipe, ShoppingCart
+from .models import Favorite, Ingredient, Recipe, ShoppingCart
 
 
 class RecipeFilter(django_filters.FilterSet):
     """Фильтры для рецептов"""
-    is_favorited = django_filters.BooleanFilter(
+    is_favorited = django_filters.NumberFilter(
         method='filter_in_favorite'
     )
-    is_in_shopping_cart = django_filters.BooleanFilter(
+    is_in_shopping_cart = django_filters.NumberFilter(
         method='filter_in_shop_list'
     )
     author = django_filters.NumberFilter(
@@ -16,8 +17,7 @@ class RecipeFilter(django_filters.FilterSet):
         lookup_expr='exact'
     )
     tags = django_filters.CharFilter(
-        field_name='tags__slug',
-        lookup_expr='exact'
+        method='filter_tags'
     )
 
     def filter_in_favorite(self, queryset, name, value):
@@ -25,9 +25,11 @@ class RecipeFilter(django_filters.FilterSet):
         user = self.request.user
         if user.is_anonymous:
             return queryset
+        is_favorited = bool(value)
+        print(value, is_favorited)
         favorites = Favorite.objects.filter(user=user)
         favorite_recipes = [favorite.recipe for favorite in favorites]
-        if value:
+        if is_favorited:
             return queryset.filter(
                 pk__in=[recipe.pk for recipe in favorite_recipes]
             )
@@ -41,9 +43,11 @@ class RecipeFilter(django_filters.FilterSet):
         user = self.request.user
         if user.is_anonymous:
             return queryset
+        is_in_shopping_list = bool(value)
+        print(value, is_in_shopping_list)
         shop_list = ShoppingCart.objects.filter(user=user)
         added_recipes = [shop_item.recipe for shop_item in shop_list]
-        if value:
+        if is_in_shopping_list:
             return queryset.filter(
                 pk__in=[recipe.pk for recipe in added_recipes]
             )
@@ -51,6 +55,14 @@ class RecipeFilter(django_filters.FilterSet):
             return queryset.exclude(
                 pk__in=[recipe.pk for recipe in added_recipes]
             )
+
+    def filter_tags(self, queryset, name, value):
+        """Фильтр для тэгов"""
+        tags = self.request.GET.getlist('tags')
+        tag_filters = Q()
+        for tag in tags:
+            tag_filters |= Q(tags__slug=tag)
+        return queryset.filter(tag_filters).distinct()
 
     class Meta:
         model = Recipe
@@ -60,3 +72,11 @@ class RecipeFilter(django_filters.FilterSet):
             'is_favorited',
             'is_in_shopping_cart'
         )
+
+
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ('name', )
