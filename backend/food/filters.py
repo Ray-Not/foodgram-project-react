@@ -26,7 +26,6 @@ class RecipeFilter(django_filters.FilterSet):
         if user.is_anonymous:
             return queryset
         is_favorited = bool(value)
-        print(value, is_favorited)
         favorites = Favorite.objects.filter(user=user)
         favorite_recipes = [favorite.recipe for favorite in favorites]
         if is_favorited:
@@ -44,7 +43,6 @@ class RecipeFilter(django_filters.FilterSet):
         if user.is_anonymous:
             return queryset
         is_in_shopping_list = bool(value)
-        print(value, is_in_shopping_list)
         shop_list = ShoppingCart.objects.filter(user=user)
         added_recipes = [shop_item.recipe for shop_item in shop_list]
         if is_in_shopping_list:
