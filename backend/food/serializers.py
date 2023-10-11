@@ -3,7 +3,6 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
-
 from users.serializers import CustomMeSerializer
 
 from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
@@ -79,8 +78,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
 
     def get_is_in_shopping_cart(self, obj):
+        """Для отображения поля в списке покупок"""
         user = self.context['request'].user
-
+        if user.is_anonymous:
+            return False
         is_in_cart = ShoppingCart.objects.filter(
             user=user,
             recipe=obj,
@@ -90,8 +91,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         return is_in_cart
 
     def get_is_favorited(self, obj):
+        """Для отображения поля в избранном"""
         user = self.context['request'].user
-
+        if user.is_anonymous:
+            return False
         is_in_cart = Favorite.objects.filter(
             user=user,
             recipe=obj,
@@ -131,7 +134,7 @@ class CrRecipeIngredientSerializer(serializers.ModelSerializer):
 class CrRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для создания рецептов"""
     ingredients = CrRecipeIngredientSerializer(many=True)
-    image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=True, allow_null=True)
 
     def create(self, validated_data):
         """POST для рецепта"""
@@ -143,11 +146,13 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         for item in ingredient_data:
             ingredient = item['id']
             amount = item['amount']
-            RecipesIngredient.objects.create(
-                ingredient=ingredient,
+            recipe_ingredient = RecipesIngredient.objects.create(
                 recipe=recipe,
+                ingredient=ingredient,
                 amount=amount
             )
+            recipe_ingredient.amount = amount
+            recipe_ingredient.save()
         for tag in tags_data:
             recipe.tags.add(tag)
         return recipe
@@ -159,7 +164,9 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         instance.name = validated_data['name']
         instance.cooking_time = validated_data['cooking_time']
         instance.text = validated_data['text']
-        instance.image = validated_data['image']
+        new_image = validated_data.get('image')
+        if new_image:
+            instance.image = new_image
         instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
         for item in validated_data['ingredients']:
@@ -180,6 +187,71 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             context={'request': self.context.get('request')}
         ).data
 
+    def validate_ingredients(self, value):
+        if not value or len(value) < 1:
+            raise serializers.ValidationError("This list may not be empty.")
+        return value
+
+    def validate(self, data):
+        """Валидация, в основном для PATCH"""
+        DB_INTEGER_OVERFLOW = 2147483647
+        errors = {}
+        ingredient_ids = set()
+        required_fields = [
+            'name',
+            'cooking_time',
+            'text',
+            'ingredients',
+            'tags'
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                errors[field] = 'This field is required'
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        if data['cooking_time'] < 1:
+            errors[
+                'cooking_time'
+            ] = 'Ensure this value is greater than or equal to 1.'
+        for ingredient_data in data['ingredients']:
+            ingredient_errors = {}
+            if ingredient_data.get('id') in ingredient_ids:
+                ingredient_errors['id'] = [
+                    'The fields name must make a unique set.'
+                ]
+                break
+            ingredient_ids.add(ingredient_data.get('id'))
+            if not ingredient_data.get('id'):
+                ingredient_errors['id'] = ['This field is required.']
+            try:
+                amount = int(ingredient_data.get('amount'))
+                if amount > DB_INTEGER_OVERFLOW:
+                    ingredient_errors['amount'] = [
+                        'This field is overflow.'
+                    ]
+                    break
+                if amount < 1:
+                    ingredient_errors['amount'] = [
+                        'This field must be an integer greater than 1.'
+                    ]
+                    break
+            except ValueError:
+                ingredient_errors['amount'] = [
+                    'This field must be an integer.'
+                ]
+                break
+            except TypeError:
+                ingredient_errors['amount'] = [
+                    'This field mustn\'t be NoneType.'
+                ]
+                break
+        if ingredient_errors:
+            errors['ingredients'] = ingredient_errors
+        if errors:
+            raise serializers.ValidationError(errors)
+        return data
+
     class Meta:
         model = Recipe
         fields = (
@@ -190,10 +262,3 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-
-
-class DetailRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для вывода при добавлении в корзину"""
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')

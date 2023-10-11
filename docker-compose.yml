@@ -3,6 +3,7 @@ version: '3.1'
 volumes:
   pg_data:
   static:
+  media:
 
 services:
   db:
@@ -15,11 +16,17 @@ services:
   backend:
     build: ./backend/
     env_file: .env
-    command: sh -c "python manage.py collectstatic --noinput && gunicorn --bind 0.0.0.0:8000 foodgram_main.wsgi:application"
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+      python manage.py migrate &&
+      gunicorn --bind 0.0.0.0:8000 foodgram_main.wsgi:application"
     volumes:
       - static:/app/collected_static
+      - media:/app/media
     ports:
       - "8000:8000"
+    depends_on:
+      - db
   frontend:
     build: ./frontend/
     volumes:
@@ -32,3 +39,4 @@ services:
       - "80:80"
     volumes:
       - static:/${NGINX_STATIC_PATH}
+      - media:/${NGINX_STATIC_PATH}/media
