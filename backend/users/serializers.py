@@ -43,6 +43,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         return data
 
     def get_is_subscribed(self, follow):
+        """Для определения is_subscribe"""
         follower = self.context['request'].user
         if follower.is_anonymous:
             return False
@@ -85,20 +86,33 @@ class SubscribeSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_recipes(self, follow):
+        """Возвращение рецептов фолоува"""
         recipes = Recipe.objects.filter(author=follow)
         serializer = DetailRecipeSerializer(recipes, many=True)
 
         return serializer.data
 
     def get_recipes_count(self, follow):
+        """Вернет количество рецептов после recipes"""
         return Recipe.objects.filter(author=follow).count()
 
     def get_is_subscribed(self, follow):
+        """Для работы is_subscribed"""
         follower = self.context['request'].user
         return Subscribe.objects.filter(
             follow=follow,
             follower=follower
         ).exists()
+
+    def to_representation(self, instance):
+        """Для ограничения вложенных рецептов"""
+        data = super().to_representation(instance)
+        recipes_limit = self.context.get('recipes_limit')
+        print(recipes_limit)
+        if recipes_limit is not None:
+            data['recipes'] = data['recipes'][:recipes_limit]
+            data['recipes_count'] = recipes_limit
+        return data
 
     class Meta:
         model = User

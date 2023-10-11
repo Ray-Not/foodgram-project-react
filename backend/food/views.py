@@ -67,7 +67,7 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['POST', 'DELETE'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
-        """Добавление в список покупок"""
+        """Работа со списком покупок"""
         recipe = self.get_object()
         user = request.user
         recipe_in_cart = ShoppingCart.objects.filter(
@@ -102,7 +102,7 @@ class RecipeViewSet(ModelViewSet):
 
     @action(detail=True, methods=['POST', 'DELETE'], url_path='favorite')
     def favorite(self, request, pk=None):
-        """Добавление в избранное"""
+        """Работа с избранным"""
         recipe = self.get_object()
         user = request.user
         recipe_in_favor = Favorite.objects.filter(
@@ -139,9 +139,10 @@ class RecipeViewSet(ModelViewSet):
 @api_view(['GET'])
 @login_required
 def dowload_shopping_list(request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="shop_list.csv"'
-    writer = csv.writer(response, delimiter=',')
+    """Загрузка файла с ингредиентами в csv"""
+    file = HttpResponse(content_type='text/csv')
+    file['Content-Disposition'] = 'attachment; filename="shop_list.csv"'
+    writer = csv.writer(file, delimiter=',')
     ingredient_totals = {}
     ingredient_units = {}
     shopping_cart_items = ShoppingCart.objects.filter(user=request.user)
@@ -162,4 +163,4 @@ def dowload_shopping_list(request):
         formatted_view = f'{ingredient} ({measure}) - {amount}'
         writer.writerow([formatted_view])
 
-    return response
+    return file

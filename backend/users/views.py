@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
 from .models import Subscribe, User
 from .serializers import CustomUserSerializer, SubscribeSerializer
 
@@ -38,6 +39,7 @@ class SubscribeView(ModelViewSet):
 
     @action(detail=True, methods=['POST'], url_path='subscribe')
     def subscribe(self, request, pk=None):
+        """Подписка через /subscribe"""
         follow = self.get_object()
         follower = request.user
         is_sub = Subscribe.objects.filter(
@@ -66,6 +68,7 @@ class SubscribeView(ModelViewSet):
 
     @action(detail=True, methods=['DELETE'], url_path='subscribe')
     def unsubscribe(self, request, pk=None):
+        """Отписка через /subscribe"""
         follow = self.get_object()
         follower = request.user
         is_sub = Subscribe.objects.filter(
@@ -85,11 +88,21 @@ class SubscribeView(ModelViewSet):
 
 
 class SubscribeListView(ListAPIView):
+    """Представление для списка фолоувоф"""
     serializer_class = SubscribeSerializer
     permission_classes = [IsAuthenticated, ]
     pagination_class = ListPagination
 
+    def get_serializer_context(self):
+        """передача параметра сериализатору для ограничения"""
+        context = super().get_serializer_context()
+        recipes_limit = self.request.query_params.get('recipes_limit')
+        if recipes_limit:
+            context['recipes_limit'] = int(recipes_limit)
+        return context
+
     def get_queryset(self):
+        """Вернет только пользователей фолоувоф"""
         subscribed_users = Subscribe.objects.filter(
             follower=self.request.user
         ).values_list('follow_id', flat=True)

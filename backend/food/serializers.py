@@ -192,7 +192,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        """Валидация для патч"""
+        """Валидация, в основном для PATCH"""
         DB_INTEGER_OVERFLOW = 2147483647
         errors = {}
         ingredient_ids = set()
