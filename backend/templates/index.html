@@ -1,1 +1,34 @@
-Endpoints in NORMAL
+{% comment %} Все файлы берутся со стороних источников {% endcomment %}
+<!DOCTYPE html> 
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 404 - Page Not Found</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: url(https://i.gifer.com/EOi5.gif) center center fixed;
+            background-size: cover;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .error-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+    <body>
+        <main>
+            {% block content %}
+            No content
+            {% endblock %}
+        </main>
+    </body>
+</html> 
