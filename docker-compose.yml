@@ -23,8 +23,6 @@ services:
     volumes:
       - static:/app/collected_static
       - media:/app/media
-    ports:
-      - "8000:8000"
     depends_on:
       - db
   frontend:
@@ -36,7 +34,7 @@ services:
     environment:
       - STATIC_PATH=${NGINX_STATIC_PATH}
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - static:/${NGINX_STATIC_PATH}
       - media:/${NGINX_STATIC_PATH}/media
