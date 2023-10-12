@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from rest_framework.filters import OrderingFilter
 from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
@@ -31,8 +32,10 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [AllowAny, ]
-    filter_backends = [DjangoFilterBackend, ]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, ]
     filterset_class = IngredientFilter
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
 
 
 class RecipeViewSet(ModelViewSet):
