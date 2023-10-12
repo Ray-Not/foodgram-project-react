@@ -13,8 +13,8 @@ class UserAdmin(admin.ModelAdmin):
         'is_subscribed',
         'last_login'
     )
-    search_fields = ('username',)
-    list_filter = ('email', 'username',)
+    search_fields = ('username', )
+    list_filter = ('email', 'username', )
 
 
 admin.site.register(User, UserAdmin)

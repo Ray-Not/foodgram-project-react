@@ -79,9 +79,13 @@ class Recipe(models.Model):
     )
     is_favorited = models.BooleanField(default=False)
     is_in_shopping_cart = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
     def __str__(self):
         return self.name
+
+    def favorite_count(self):
+        return Favorite.objects.filter(recipe=self).count()
 
     class Meta:
         unique_together = ('name', )
