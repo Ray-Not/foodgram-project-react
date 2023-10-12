@@ -57,8 +57,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram_main.wsgi.application'
 
-# Database
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',

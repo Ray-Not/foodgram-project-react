@@ -32,10 +32,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = [AllowAny, ]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, ]
+    filter_backends = [DjangoFilterBackend, ]
     filterset_class = IngredientFilter
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
 
 
 class RecipeViewSet(ModelViewSet):
@@ -43,8 +41,10 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, ]
     pagination_class = ListPagination
-    filter_backends = [DjangoFilterBackend, ]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, ]
     filterset_class = RecipeFilter
+    ordering_fields = ['created_at', ]
+    ordering = ['-created_at', ]
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_serializer_class(self):
