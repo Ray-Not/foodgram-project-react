@@ -2,14 +2,14 @@
 import json
 
 from django.core.management.base import BaseCommand
+
 from food.models import Ingredient
 
 
 class Command(BaseCommand):
-    help = 'Load data from JSON file into database'
 
     def add_arguments(self, parser):
-        parser.add_argument('json_file', type=str, help='Path to JSON file')
+        parser.add_argument('json_file', type=str)
 
     def handle(self, *args, **options):
         json_file = options['json_file']

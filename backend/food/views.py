@@ -8,6 +8,7 @@ from rest_framework.decorators import action, api_view
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+
 from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 

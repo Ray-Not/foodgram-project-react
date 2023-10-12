@@ -1,0 +1,40 @@
+version: '3.1'
+
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    image: postgres:latest
+    env_file: .env
+    ports:
+    - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    image: raynot/foodgram_backend
+    env_file: .env
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+      python manage.py migrate &&
+      gunicorn --bind 0.0.0.0:8000 foodgram_main.wsgi:application"
+    volumes:
+      - static:/app/collected_static
+      - media:/app/media
+    depends_on:
+      - db
+  frontend:
+    image: raynot/foodgram_frontend
+    volumes:
+      - static:/app/result_build/build
+  nginx:
+    image: raynot/foodgram_gateway
+    environment:
+      - STATIC_PATH=${NGINX_STATIC_PATH}
+    ports:
+      - "8000:80"
+    volumes:
+      - static:/${NGINX_STATIC_PATH}
+      - media:/${NGINX_STATIC_PATH}/media
