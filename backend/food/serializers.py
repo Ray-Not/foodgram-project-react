@@ -188,59 +188,51 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             context={'request': self.context.get('request')}
         ).data
 
-    def validate_ingredients(self, value):
-        if not value or len(value) < 1:
-            raise serializers.ValidationError("This list may not be empty.")
-        return value
-
     def validate(self, data):
+        """Валидация, в основном для PATCH"""
         errors = {}
         required_fields = [
-            'name', 'cooking_time', 'text', 'ingredients', 'tags'
+            'name',
+            'cooking_time',
+            'text',
+            'ingredients',
+            'tags'
         ]
-
         for field in required_fields:
             if not data.get(field):
                 errors[field] = 'This field is required'
-
         if errors:
             raise serializers.ValidationError(errors)
+        return data
 
-        cooking_time = data.get('cooking_time')
-        if cooking_time and cooking_time < 1:
-            errors[
-                'cooking_time'
-            ] = 'Ensure this value is greater than or equal to 1.'
-
-        ingredient_ids = set()
-        ingredient_errors = {}
-
-        for ingredient_data in data.get('ingredients', []):
-            ingredient_id = ingredient_data.get('id')
-            if ingredient_id in ingredient_ids:
-                ingredient_errors.setdefault('id', []).append(
-                    'The fields name must make a unique set.'
-                )
-            else:
-                ingredient_ids.add(ingredient_id)
-
-            amount = ingredient_data.get('amount')
-            if amount is not None:
-                try:
-                    amount = int(amount)
-                    if amount < 1:
-                        ingredient_errors.setdefault('amount', []).append(
-                            'This field must be an integer greater than 1.'
-                        )
-                except (ValueError, TypeError):
-                    ingredient_errors.setdefault('amount', []).append(
-                        'This field must be an integer.'
-                    )
-
-        if ingredient_errors:
-            errors['ingredients'] = ingredient_errors
-
+    def validate_ingredients(self, data):
+        """Валидация наличия полей в ingredients и проверка значения amount."""
+        errors = []
+        for item in data:
+            item_errors = {}
+            if 'id' not in item:
+                item_errors['id'] = 'This field is required'
+            if 'amount' not in item:
+                item_errors['amount'] = 'This field is required'
+            if 'amount' in item and int(item['amount']) < 1:
+                item_errors[
+                    'amount'
+                ] = 'Ensure this value is greater than or equal to 1'
+            if item_errors == {}:
+                continue
+            errors.append(item_errors)
         if errors:
             raise serializers.ValidationError(errors)
 
         return data
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'tags',
+            'ingredients',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
