@@ -217,7 +217,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             if 'amount' in item and int(item['amount']) < 1:
                 item_errors[
                     'amount'
-                ] = 'Ensure this value is greater than or equal to 1'
+                ] = ['Ensure this value is greater than or equal to 1']
             errors.append(item_errors)
         is_empty_dicts = all(
             isinstance(item, dict) and not item for item in errors
