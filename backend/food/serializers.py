@@ -218,12 +218,12 @@ class CrRecipeSerializer(serializers.ModelSerializer):
                 item_errors[
                     'amount'
                 ] = 'Ensure this value is greater than or equal to 1'
-            if item_errors == {}:
-                continue
             errors.append(item_errors)
-        if errors:
+        is_empty_dicts = all(
+            isinstance(item, dict) and not item for item in errors
+        )
+        if not is_empty_dicts:
             raise serializers.ValidationError(errors)
-
         return data
 
     class Meta:
