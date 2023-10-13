@@ -196,6 +196,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             'ingredients',
             'tags'
         ]
+
         for field in required_fields:
             if not data.get(field):
                 errors[field] = 'This field is required'
