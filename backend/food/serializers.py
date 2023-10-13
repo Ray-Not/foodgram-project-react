@@ -165,9 +165,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         instance.name = validated_data['name']
         instance.cooking_time = validated_data['cooking_time']
         instance.text = validated_data['text']
-        new_image = validated_data.get('image')
-        if new_image:
-            instance.image = new_image
+        validated_data.get('image', instance.image)
         instance.tags.set(validated_data.pop('tags'))
         instance.ingredients.clear()
         for item in validated_data['ingredients']:
