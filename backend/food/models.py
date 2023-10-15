@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from users.models import User
@@ -73,8 +73,11 @@ class Recipe(models.Model):
     text = models.TextField(
         verbose_name='Описание рецепта',
     )
-    cooking_time = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
+    cooking_time = models.PositiveSmallIntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(720)
+        ],
         verbose_name='Время готовки (мин.)',
     )
     is_favorited = models.BooleanField(default=False)

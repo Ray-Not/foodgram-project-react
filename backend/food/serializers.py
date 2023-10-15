@@ -160,6 +160,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """PATCH для рецепта"""
+        print("ASD")
         if instance.author != self.context['request'].user:
             raise PermissionDenied
         instance.name = validated_data['name']
@@ -187,7 +188,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         ).data
 
     def validate(self, data):
-        """Валидация, в основном для PATCH"""
+        """Валидация полей на наличие"""
         errors = {}
         required_fields = [
             'name',
