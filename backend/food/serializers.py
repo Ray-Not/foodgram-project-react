@@ -7,8 +7,8 @@ from rest_framework.exceptions import PermissionDenied
 from users.serializers import CustomMeSerializer
 
 from .models import (MAX_AMOUNT, MAX_COOKING_TIME, MIN_AMOUNT,
-                     MIN_COOKING_TIME, Ingredient, Recipe,
-                     RecipesIngredient, Tag)
+                     MIN_COOKING_TIME, Ingredient, Recipe, RecipesIngredient,
+                     Tag)
 
 
 class TagSerializer(serializers.ModelSerializer):
