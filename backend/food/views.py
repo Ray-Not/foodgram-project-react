@@ -41,7 +41,7 @@ class RecipeViewSet(ModelViewSet):
     pagination_class = ListPagination
     filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    http_method_names = ['get', 'post', 'delete', 'put', 'patch']
+    http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_serializer_class(self):
         """Задаем различные сериализаторы в зависимости от метода"""
