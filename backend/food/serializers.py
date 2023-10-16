@@ -7,8 +7,8 @@ from rest_framework.exceptions import PermissionDenied
 from users.serializers import CustomMeSerializer
 
 from .models import (MAX_AMOUNT, MAX_COOKING_TIME, MIN_AMOUNT,
-                     MIN_COOKING_TIME, Ingredient, Recipe, RecipesIngredient,
-                     Tag)
+                     MIN_COOKING_TIME, Ingredient, Recipe,
+                     RecipesIngredient, Tag)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -162,8 +162,8 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name')
         instance.cooking_time = validated_data.get('cooking_time')
         instance.text = validated_data.get('text')
-        validated_data.get('image', instance.image)
-        instance.image = instance.tags.set(validated_data.get('tags'))
+        instance.image = validated_data.get('image', instance.image)
+        instance.tags.set(validated_data.get('tags'))
         instance.ingredients.clear()
         recipe_ingredients_objects = []
         get_recipe_ingredient_objects(
