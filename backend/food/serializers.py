@@ -6,8 +6,9 @@ from rest_framework.exceptions import PermissionDenied
 
 from users.serializers import CustomMeSerializer
 
-from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
-                     ShoppingCart, Tag)
+from .models import (MAX_AMOUNT, MAX_COOKING_TIME, MIN_AMOUNT,
+                     MIN_COOKING_TIME, Ingredient, Recipe, RecipesIngredient,
+                     Tag)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -44,7 +45,10 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(
+        min_value=MIN_AMOUNT,
+        max_value=MAX_AMOUNT
+    )
 
     class Meta:
         model = RecipesIngredient
@@ -77,17 +81,17 @@ class RecipeSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     is_in_shopping_cart = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    cooking_time = serializers.IntegerField(
+        min_value=MIN_COOKING_TIME,
+        max_value=MAX_COOKING_TIME
+    )
 
     def get_is_in_shopping_cart(self, obj):
         """Для отображения поля в списке покупок"""
         user = self.context['request'].user
         if user.is_anonymous:
             return False
-        is_in_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=obj,
-            in_shopping_card=True
-        ).exists()
+        is_in_cart = user.user_recipes_cart.filter(recipe=obj).exists()
 
         return is_in_cart
 
@@ -96,11 +100,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if user.is_anonymous:
             return False
-        is_in_cart = Favorite.objects.filter(
-            user=user,
-            recipe=obj,
-            in_favorite=True
-        ).exists()
+        is_in_cart = user.user_recipes_favor.filter(recipe=obj).exists()
 
         return is_in_cart
 
@@ -134,7 +134,7 @@ class CrRecipeIngredientSerializer(serializers.ModelSerializer):
 
 class CrRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для создания рецептов"""
-    ingredients = CrRecipeIngredientSerializer(many=True)
+    ingredients = CrRecipeIngredientSerializer(many=True, required=True)
     image = Base64ImageField(required=True, allow_null=True)
 
     def create(self, validated_data):
@@ -144,39 +144,34 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         ingredient_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
-        for item in ingredient_data:
-            ingredient = item['id']
-            amount = item['amount']
-            recipe_ingredient = RecipesIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient,
-                amount=amount
-            )
-            recipe_ingredient.amount = amount
-            recipe_ingredient.save()
+        recipe_ingredients_objects = []
+        get_recipe_ingredient_objects(
+            ingredient_data,
+            recipe,
+            recipe_ingredients_objects
+        )
+        RecipesIngredient.objects.bulk_create(recipe_ingredients_objects)
         for tag in tags_data:
             recipe.tags.add(tag)
         return recipe
 
     def update(self, instance, validated_data):
         """PATCH для рецепта"""
-        print("ASD")
         if instance.author != self.context['request'].user:
             raise PermissionDenied
-        instance.name = validated_data['name']
-        instance.cooking_time = validated_data['cooking_time']
-        instance.text = validated_data['text']
+        instance.name = validated_data.get('name')
+        instance.cooking_time = validated_data.get('cooking_time')
+        instance.text = validated_data.get('text')
         validated_data.get('image', instance.image)
-        instance.tags.set(validated_data.pop('tags'))
+        instance.tags.set(validated_data.get('tags'))
         instance.ingredients.clear()
-        for item in validated_data['ingredients']:
-            ingredient = item['id']
-            amount = item['amount']
-            RecipesIngredient.objects.create(
-                ingredient=ingredient,
-                recipe=instance,
-                amount=amount
-            )
+        recipe_ingredients_objects = []
+        get_recipe_ingredient_objects(
+            validated_data.get('ingredients'),
+            instance,
+            recipe_ingredients_objects
+        )
+        RecipesIngredient.objects.bulk_create(recipe_ingredients_objects)
         instance.save()
         return instance
 
@@ -187,43 +182,13 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             context={'request': self.context.get('request')}
         ).data
 
-    def validate(self, data):
-        """Валидация полей на наличие"""
-        errors = {}
-        required_fields = [
-            'name',
-            'cooking_time',
-            'text',
-            'ingredients',
-            'tags'
-        ]
-
-        for field in required_fields:
-            if not data.get(field):
-                errors[field] = 'This field is required'
-        if errors:
-            raise serializers.ValidationError(errors)
-        return data
-
     def validate_ingredients(self, data):
-        """Валидация наличия полей в ingredients и проверка значения amount."""
-        errors = []
+        seen_ids = set()
         for item in data:
-            item_errors = {}
-            if 'id' not in item:
-                item_errors['id'] = 'This field is required'
-            if 'amount' not in item:
-                item_errors['amount'] = 'This field is required'
-            if 'amount' in item and int(item['amount']) < 1:
-                item_errors[
-                    'amount'
-                ] = ['Ensure this value is greater than or equal to 1']
-            errors.append(item_errors)
-        is_empty_dicts = all(
-            isinstance(item, dict) and not item for item in errors
-        )
-        if not is_empty_dicts:
-            raise serializers.ValidationError(errors)
+            ingredient_id = item.get('id')
+            if ingredient_id in seen_ids:
+                raise serializers.ValidationError("Duplicated ingredient id")
+            seen_ids.add(ingredient_id)
         return data
 
     class Meta:
@@ -236,3 +201,20 @@ class CrRecipeSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
+
+
+def get_recipe_ingredient_objects(ingredient_data,
+                                  recipe,
+                                  recipe_ingredients_objects):
+
+    for item in ingredient_data:
+        ingredient = item['id']
+        amount = item['amount']
+        recipe_ingredient = RecipesIngredient(
+            recipe=recipe,
+            ingredient=ingredient,
+            amount=amount
+        )
+        recipe_ingredients_objects.append(recipe_ingredient)
+
+    return recipe_ingredients_objects

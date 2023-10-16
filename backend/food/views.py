@@ -5,7 +5,6 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action, api_view
-from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -14,8 +13,7 @@ from users.serializers import DetailRecipeSerializer
 from users.views import ListPagination
 
 from .filters import IngredientFilter, RecipeFilter
-from .models import (Favorite, Ingredient, Recipe, RecipesIngredient,
-                     ShoppingCart, Tag)
+from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from .serializers import (CrRecipeSerializer, IngredientSerializer,
                           RecipeSerializer, TagSerializer)
 
@@ -41,18 +39,18 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly, ]
     pagination_class = ListPagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter, ]
+    filter_backends = [DjangoFilterBackend, ]
     filterset_class = RecipeFilter
-    ordering_fields = ['created_at', ]
-    ordering = ['-created_at', ]
-    http_method_names = ['get', 'post', 'delete', 'patch']
+    http_method_names = ['get', 'post', 'delete', 'put', 'patch']
 
     def get_serializer_class(self):
+        """Задаем различные сериализаторы в зависимости от метода"""
         if self.action in ('list', 'retrieve'):
             return RecipeSerializer
         return CrRecipeSerializer
 
     def destroy(self, request, *args, **kwargs):
+        """Удаляем рецепт, если есть права"""
         instance = self.get_object()
         response_data = {
             "detail":
@@ -63,16 +61,19 @@ class RecipeViewSet(ModelViewSet):
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def partial_update(self, request, *args, **kwargs):
+        """redoc и frontend требует PATCH запрос,
+        при котором данные не валидируются на обязательность,
+        PATCH запрос перекидываем на PUT запрос"""
+        kwargs['partial'] = False
+        return self.update(request, *args, **kwargs)
+
     @action(detail=True, methods=['POST', 'DELETE'], url_path='shopping_cart')
     def shopping_cart(self, request, pk=None):
         """Работа со списком покупок"""
         recipe = self.get_object()
         user = request.user
-        recipe_in_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=recipe,
-            in_shopping_card=True
-        )
+        recipe_in_cart = user.user_recipes_cart.get(recipe=recipe)
         if request.method == "POST":
             if recipe_in_cart:
                 return Response(
@@ -103,11 +104,7 @@ class RecipeViewSet(ModelViewSet):
         """Работа с избранным"""
         recipe = self.get_object()
         user = request.user
-        recipe_in_favor = Favorite.objects.filter(
-            user=user,
-            recipe=recipe,
-            in_favorite=True
-        )
+        recipe_in_favor = user.user_recipes_favor.get(recipe=recipe)
         if request.method == "POST":
             if recipe_in_favor:
                 return Response(
@@ -143,11 +140,10 @@ def dowload_shopping_list(request):
     writer = csv.writer(file, delimiter=',')
     ingredient_totals = {}
     ingredient_units = {}
-    shopping_cart_items = ShoppingCart.objects.filter(user=request.user)
+    shopping_cart_items = request.user.user_recipes_cart.all()
     for item in shopping_cart_items:
-        recipe_ingredients = RecipesIngredient.objects.filter(
-            recipe=item.recipe
-        )
+        recipe = item.recipe
+        recipe_ingredients = recipe.recipe_ingredients.all()
         for recipe_ingredient in recipe_ingredients:
             ingredient_name = recipe_ingredient.ingredient.name
             measure = recipe_ingredient.ingredient.measurement_unit

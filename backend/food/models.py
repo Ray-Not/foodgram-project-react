@@ -3,6 +3,11 @@ from django.db import models
 
 from users.models import User
 
+MIN_COOKING_TIME = 1
+MAX_COOKING_TIME = 32000
+MIN_AMOUNT = 1
+MAX_AMOUNT = 1000
+
 
 class Tag(models.Model):
     """Модель тэгов"""
@@ -21,6 +26,9 @@ class Tag(models.Model):
         verbose_name='Слаг тэга',
     )
 
+    class Meta:
+        ordering = ('color', )
+
     def __str__(self):
         return self.name
 
@@ -36,11 +44,12 @@ class Ingredient(models.Model):
         verbose_name='Единица измерения',
     )
 
+    class Meta:
+        ordering = ('name', )
+        unique_together = ('name', 'measurement_unit', )
+
     def __str__(self):
         return self.name
-
-    class Meta:
-        unique_together = ('name', 'measurement_unit')
 
 
 class Recipe(models.Model):
@@ -75,8 +84,8 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(720)
+            MinValueValidator(MIN_COOKING_TIME),
+            MaxValueValidator(MAX_COOKING_TIME)
         ],
         verbose_name='Время готовки (мин.)',
     )
@@ -84,14 +93,15 @@ class Recipe(models.Model):
     is_in_shopping_cart = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
+    class Meta:
+        ordering = ('-created_at', )
+        unique_together = ('name', )
+
     def __str__(self):
         return self.name
 
     def favorite_count(self):
         return Favorite.objects.filter(recipe=self).count()
-
-    class Meta:
-        unique_together = ('name', )
 
 
 class RecipesIngredient(models.Model):
@@ -108,10 +118,17 @@ class RecipesIngredient(models.Model):
         verbose_name='Ингредиент',
         related_name='recipe_ingredients'
     )
-    amount = models.PositiveIntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиента',
-        blank=False
+        validators=[
+            MinValueValidator(MIN_AMOUNT),
+            MaxValueValidator(MAX_AMOUNT)
+        ],
     )
+
+    class Meta:
+        unique_together = ('ingredient', 'amount', )
+        ordering = ('recipe', )
 
     def __str__(self):
         return f'{self.recipe} с использованием {self.ingredient}'
@@ -122,7 +139,8 @@ class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
+        related_name='user_recipes_cart'
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -130,6 +148,10 @@ class ShoppingCart(models.Model):
         verbose_name='Рецепт'
     )
     in_shopping_card = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('user', )
+        unique_together = ('user', 'recipe', )
 
     def __str__(self):
         return f"{self.user} добавил {self.recipe} в список покупок"
@@ -140,7 +162,8 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
+        related_name='user_recipes_favor'
     )
     recipe = models.ForeignKey(
         Recipe,
@@ -148,6 +171,10 @@ class Favorite(models.Model):
         verbose_name='Рецепт'
     )
     in_favorite = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ('user', )
+        unique_together = ('user', 'recipe', )
 
     def __str__(self):
         return f"{self.recipe} в избранном у {self.user}"
