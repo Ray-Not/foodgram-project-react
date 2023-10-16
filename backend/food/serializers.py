@@ -163,7 +163,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         instance.cooking_time = validated_data.get('cooking_time')
         instance.text = validated_data.get('text')
         validated_data.get('image', instance.image)
-        instance.tags.set(validated_data.get('tags'))
+        instance.image = instance.tags.set(validated_data.get('tags'))
         instance.ingredients.clear()
         recipe_ingredients_objects = []
         get_recipe_ingredient_objects(
