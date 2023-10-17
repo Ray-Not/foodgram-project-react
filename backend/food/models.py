@@ -127,7 +127,6 @@ class RecipesIngredient(models.Model):
     )
 
     class Meta:
-        unique_together = ('ingredient', 'amount', )
         ordering = ('recipe', )
 
     def __str__(self):

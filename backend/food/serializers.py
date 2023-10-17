@@ -135,7 +135,7 @@ class CrRecipeIngredientSerializer(serializers.ModelSerializer):
 class CrRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для создания рецептов"""
     ingredients = CrRecipeIngredientSerializer(many=True, required=True)
-    image = Base64ImageField(required=True, allow_null=True)
+    image = Base64ImageField(required=False, allow_null=True)
 
     def create(self, validated_data):
         """POST для рецепта"""
@@ -144,6 +144,8 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         ingredient_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
+        if 'image' not in validated_data:
+            validated_data['image'] = ""
         recipe_ingredients_objects = []
         get_recipe_ingredient_objects(
             ingredient_data,
