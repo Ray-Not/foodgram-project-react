@@ -73,7 +73,7 @@ class RecipeViewSet(ModelViewSet):
         """Работа со списком покупок"""
         recipe = self.get_object()
         user = request.user
-        recipe_in_cart = user.user_recipes_cart.get(recipe=recipe)
+        recipe_in_cart = user.user_recipes_cart.filter(recipe=recipe)
         if request.method == "POST":
             if recipe_in_cart:
                 return Response(
@@ -104,7 +104,7 @@ class RecipeViewSet(ModelViewSet):
         """Работа с избранным"""
         recipe = self.get_object()
         user = request.user
-        recipe_in_favor = user.user_recipes_favor.get(recipe=recipe)
+        recipe_in_favor = user.user_recipes_favor.filter(recipe=recipe)
         if request.method == "POST":
             if recipe_in_favor:
                 return Response(
