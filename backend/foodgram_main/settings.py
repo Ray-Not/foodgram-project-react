@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-DEBUG = os.getenv('DJANGO_DEBUG_MODE', 'True').lower() == "true"
+DEBUG = os.getenv('DJANGO_DEBUG_MODE', 'True').lower() == 'true'
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost').split(', ')
 
 INSTALLED_APPS = [

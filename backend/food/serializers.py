@@ -146,7 +146,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         tags_data = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         if 'image' not in validated_data:
-            validated_data['image'] = ""
+            validated_data['image'] = ''
         recipe_ingredients_objects = []
         get_recipe_ingredient_objects(
             ingredient_data,
@@ -190,7 +190,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
         for item in data:
             ingredient_id = item.get('id')
             if ingredient_id in seen_ids:
-                raise serializers.ValidationError("Duplicated ingredient id")
+                raise serializers.ValidationError('Duplicated ingredient id')
             seen_ids.add(ingredient_id)
         return data
 

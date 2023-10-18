@@ -53,8 +53,8 @@ class RecipeViewSet(ModelViewSet):
         """Удаляем рецепт, если есть права"""
         instance = self.get_object()
         response_data = {
-            "detail":
-                "Permission denied"
+            'detail':
+                'Permission denied'
         }
         if instance.author != request.user:
             return Response(response_data, status=status.HTTP_403_FORBIDDEN)
@@ -77,7 +77,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             if recipe_in_cart:
                 return Response(
-                    {"errors": "recipe_in_cart already exists"},
+                    {'errors': 'recipe_in_cart already exists'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             ShoppingCart.objects.create(
@@ -93,7 +93,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'DELETE':
             if not recipe_in_cart:
                 return Response(
-                    {"errors": "recipe_in_cart not found"},
+                    {'errors': 'recipe_in_cart not found'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             recipe_in_cart.delete()
@@ -108,7 +108,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             if recipe_in_favor:
                 return Response(
-                    {"errors": "recipe_in_favore already exists"},
+                    {'errors': 'recipe_in_favore already exists'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             Favorite.objects.create(
@@ -124,7 +124,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'DELETE':
             if not recipe_in_favor:
                 return Response(
-                    {"errors": "recipe_in_favore not found"},
+                    {'errors': 'recipe_in_favore not found'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             recipe_in_favor.delete()

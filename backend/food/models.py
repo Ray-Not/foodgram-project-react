@@ -153,7 +153,7 @@ class ShoppingCart(models.Model):
         unique_together = ('user', 'recipe', )
 
     def __str__(self):
-        return f"{self.user} добавил {self.recipe} в список покупок"
+        return f'{self.user} добавил {self.recipe} в список покупок'
 
 
 class Favorite(models.Model):
@@ -176,4 +176,4 @@ class Favorite(models.Model):
         unique_together = ('user', 'recipe', )
 
     def __str__(self):
-        return f"{self.recipe} в избранном у {self.user}"
+        return f'{self.recipe} в избранном у {self.user}'
