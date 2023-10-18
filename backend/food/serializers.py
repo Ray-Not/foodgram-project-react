@@ -139,6 +139,7 @@ class CrRecipeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """POST для рецепта"""
+        print(validated_data)
         author = self.context['request'].user
         validated_data['author'] = author
         ingredient_data = validated_data.pop('ingredients')

@@ -74,7 +74,7 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         user = request.user
         recipe_in_cart = user.user_recipes_cart.filter(recipe=recipe)
-        if request.method == "POST":
+        if request.method == 'POST':
             if recipe_in_cart:
                 return Response(
                     {"errors": "recipe_in_cart already exists"},
@@ -90,7 +90,7 @@ class RecipeViewSet(ModelViewSet):
                 recipe_serializer.data,
                 status=status.HTTP_201_CREATED
             )
-        if request.method == "DELETE":
+        if request.method == 'DELETE':
             if not recipe_in_cart:
                 return Response(
                     {"errors": "recipe_in_cart not found"},
@@ -105,7 +105,7 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         user = request.user
         recipe_in_favor = user.user_recipes_favor.filter(recipe=recipe)
-        if request.method == "POST":
+        if request.method == 'POST':
             if recipe_in_favor:
                 return Response(
                     {"errors": "recipe_in_favore already exists"},
@@ -121,7 +121,7 @@ class RecipeViewSet(ModelViewSet):
                 recipe_serializer.data,
                 status=status.HTTP_201_CREATED
             )
-        if request.method == "DELETE":
+        if request.method == 'DELETE':
             if not recipe_in_favor:
                 return Response(
                     {"errors": "recipe_in_favore not found"},
